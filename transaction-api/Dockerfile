@@ -29,6 +29,9 @@ COPY --from=builder /install /usr/local
 # Copy app code
 COPY --from=builder /app/main.py .
 
+# Install curl in production stage
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 EXPOSE 8000
 
 # Run the FastAPI app
