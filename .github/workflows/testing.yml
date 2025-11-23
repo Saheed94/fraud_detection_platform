@@ -1,21 +1,23 @@
-name: Full Stack CI
+name: Minimal CI for Fraud Detection
 
 on:
   push:
     branches:
       - testing
   pull_request:
+    branches:
+      - testing
 
 jobs:
-  full-stack-test:
+  test-core-services:
     runs-on: ubuntu-latest
     env:
       DB_USER: ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       DB_NAME: ${{ secrets.DB_NAME }}
+      REDPANDA_BOOTSTRAP: redpanda:9092
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
-      REDPANDA_BOOTSTRAP: redpanda:9092
 
     steps:
       - name: Checkout code
@@ -24,57 +26,38 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Start Docker Compose services
-        run: docker compose up -d --build
-
-      # --------- Wait for Postgres ---------
-      - name: Wait for Postgres
+      - name: Start essential services
         run: |
-          echo "Waiting for Postgres to be ready..."
+          docker compose -f docker-compose.yml up -d --build redpanda postgres transaction-api fraud-worker
+          
+      - name: Wait for Postgres to be ready
+        run: |
+          echo "Waiting for Postgres..."
           until docker exec fraud-platform-postgres pg_isready -U "$DB_USER"; do
             sleep 2
           done
           echo "Postgres is ready!"
 
-      # --------- Wait for Redis ---------
-      - name: Wait for Redis
-        run: |
-          echo "Waiting for Redis to be ready..."
-          until docker exec fraud-platform-redis redis-cli ping | grep -q PONG; do
-            sleep 2
-          done
-          echo "Redis is ready!"
+      - name: Wait a few seconds for services to start
+        run: sleep 10
 
-      # --------- Wait for Redpanda (Kafka) ---------
-      - name: Wait for Redpanda
-        run: |
-          echo "Waiting for Redpanda to be ready..."
-          until docker exec redpanda rpk cluster info; do
-            sleep 2
-          done
-          echo "Redpanda is ready!"
-
-      # --------- Wait for Transaction API ---------
-      - name: Wait for Transaction API
-        run: |
-          echo "Waiting for Transaction API to be ready..."
-          until curl -s http://localhost:8000/transactions; do
-            sleep 2
-          done
-          echo "Transaction API is ready!"
-
-      # --------- Test Transaction API ---------
-      - name: Check Transaction API
+      - name: Test Transaction API
         run: |
           API_CONTAINER=$(docker ps --format "{{.Names}}" | grep transaction-api | head -n 1)
           RESPONSE=$(docker exec "$API_CONTAINER" curl -s http://localhost:8000/transactions)
-          echo "$RESPONSE"
+          echo "API Response: $RESPONSE"
           if ! echo "$RESPONSE" | grep -q '"transactions"'; then
             echo "❌ API did not return transactions"
             exit 1
           fi
-          echo "✅ API returned transactions"
 
-      # --------- Tear down Docker Compose ---------
-      - name: Stop all services
-        run: docker compose down
+          # Check if at least one transaction is marked as fraud
+          if ! echo "$RESPONSE" | grep -q '"fraud":"Yes"'; then
+            echo "❌ No transactions flagged as fraud"
+            exit 1
+          else
+            echo "✅ At least one transaction is flagged as fraud"
+          fi
+
+      - name: Shut down services
+        run: docker compose -f docker-compose.yml down
