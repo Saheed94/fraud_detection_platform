@@ -1,73 +1,67 @@
-name: CI Pipeline (Testing Branch)
+name: CI - Docker Compose Fraud Platform
 
 on:
   push:
     branches:
       - testing
+  pull_request:
+    branches:
+      - testing
 
 jobs:
-  build-test:
+  build-and-test:
     runs-on: ubuntu-latest
+
     env:
       DB_USER: ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       DB_NAME: ${{ secrets.DB_NAME }}
-
-      # These do NOT need to be secrets.
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       REDPANDA_BOOTSTRAP: redpanda:9092
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      # --------------------------
-      # Start Docker Compose stack
-      # --------------------------
-      - name: Build and start Docker services
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to DockerHub (optional)
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and start all services
         run: docker compose up -d --build
 
-      # --------------------------
-      # Wait for Postgres to become healthy
-      # --------------------------
-      - name: Wait for Postgres
+      - name: Wait for Postgres to be ready
         run: |
-          echo "Waiting for Postgres to be ready..."
-          until docker exec fraud-platform-postgres pg_isready -U "$DB_USER"; do
+          echo "Waiting for Postgres..."
+          until docker exec $(docker ps --format "{{.Names}}" | grep postgres | head -n 1) pg_isready -U "$DB_USER"; do
             sleep 2
           done
           echo "Postgres is ready!"
 
-      # --------------------------
-      # Extra delay for the API to connect to DB
-      # --------------------------
-      - name: Wait for API startup
+      - name: Sleep a few seconds for services to fully initialize
         run: sleep 8
 
-      # --------------------------
-      # Debug: show logs if API fails
-      # --------------------------
-      - name: Print API Logs (for debugging)
-        run: docker logs fraud-platform-transaction-api-1
+      - name: Print transaction-api logs (auto-detect container)
+        run: |
+          API_CONTAINER=$(docker ps --format "{{.Names}}" | grep transaction-api | head -n 1)
+          echo "API Container: $API_CONTAINER"
+          docker logs "$API_CONTAINER"
 
-      # --------------------------
-      # Test the API endpoint
-      # --------------------------
       - name: Test /transactions endpoint
         run: |
-          RESPONSE=$(curl -s http://localhost:8000/transactions)
-          echo "API Response:"
+          API_CONTAINER=$(docker ps --format "{{.Names}}" | grep transaction-api | head -n 1)
+          RESPONSE=$(docker exec "$API_CONTAINER" curl -s http://localhost:8000/transactions)
           echo "$RESPONSE"
-
           if ! echo "$RESPONSE" | grep -q '"transactions"'; then
             echo "❌ API did not return transactions"
             exit 1
           fi
 
-      # --------------------------
-      # Shut down Docker stack
-      # --------------------------
-      - name: Stop all services
-        if: always()
+      - name: Tear down Docker Compose
         run: docker compose down
