@@ -1,17 +1,14 @@
-name: CI - Docker Compose Fraud Platform
+name: CI - Fraud Platform Full Stack
 
 on:
   push:
-    branches:
-      - testing
+    branches: [testing]
   pull_request:
-    branches:
-      - testing
+    branches: [testing]
 
 jobs:
-  build-and-test:
+  full-stack-ci:
     runs-on: ubuntu-latest
-
     env:
       DB_USER: ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
@@ -21,47 +18,76 @@ jobs:
       REDPANDA_BOOTSTRAP: redpanda:9092
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Log in to DockerHub (optional)
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
       - name: Build and start all services
         run: docker compose up -d --build
 
-      - name: Wait for Postgres to be ready
+      # -----------------------------
+      # Wait for Postgres
+      # -----------------------------
+      - name: Wait for Postgres
         run: |
           echo "Waiting for Postgres..."
-          until docker exec $(docker ps --format "{{.Names}}" | grep postgres | head -n 1) pg_isready -U "$DB_USER"; do
+          until docker exec fraud-platform-postgres pg_isready -U "$DB_USER"; do
             sleep 2
           done
           echo "Postgres is ready!"
 
-      - name: Sleep a few seconds for services to fully initialize
-        run: sleep 8
-
-      - name: Print transaction-api logs (auto-detect container)
+      # -----------------------------
+      # Wait for Redpanda
+      # -----------------------------
+      - name: Wait for Redpanda
         run: |
-          API_CONTAINER=$(docker ps --format "{{.Names}}" | grep transaction-api | head -n 1)
-          echo "API Container: $API_CONTAINER"
-          docker logs "$API_CONTAINER"
+          echo "Waiting for Redpanda..."
+          until docker exec redpanda rpk topic list >/dev/null 2>&1; do
+            sleep 2
+          done
+          echo "Redpanda is ready!"
 
-      - name: Test /transactions endpoint
+      # -----------------------------
+      # Wait for Redis
+      # -----------------------------
+      - name: Wait for Redis
         run: |
-          API_CONTAINER=$(docker ps --format "{{.Names}}" | grep transaction-api | head -n 1)
+          echo "Waiting for Redis..."
+          until docker exec fraud-platform-redis redis-cli ping | grep -q PONG; do
+            sleep 2
+          done
+          echo "Redis is ready!"
+
+      # -----------------------------
+      # Wait for transaction-api
+      # -----------------------------
+      - name: Wait for Transaction API
+        run: |
+          echo "Waiting for transaction-api..."
+          API_CONTAINER=$(docker ps --format "{{.Names}}" | grep transaction-api | head -n1)
+          until docker exec $API_CONTAINER curl -s http://localhost:8000/transactions >/dev/null 2>&1; do
+            sleep 2
+          done
+          echo "transaction-api is ready!"
+
+      # -----------------------------
+      # Run integration test: fetch transactions
+      # -----------------------------
+      - name: Test Transaction API
+        run: |
+          API_CONTAINER=$(docker ps --format "{{.Names}}" | grep transaction-api | head -n1)
           RESPONSE=$(docker exec "$API_CONTAINER" curl -s http://localhost:8000/transactions)
           echo "$RESPONSE"
           if ! echo "$RESPONSE" | grep -q '"transactions"'; then
             echo "❌ API did not return transactions"
             exit 1
           fi
+          echo "✅ Transaction API returned data!"
 
-      - name: Tear down Docker Compose
+      # -----------------------------
+      # Tear down
+      # -----------------------------
+      - name: Shut down stack
         run: docker compose down
