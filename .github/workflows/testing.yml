@@ -1,0 +1,76 @@
+name: CI - Fraud Platform End-to-End
+
+on:
+  push:
+    branches: [testing]
+  pull_request:
+    branches: [testing]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    env:
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      REDPANDA_BOOTSTRAP: ${{ secrets.REDPANDA_BOOTSTRAP }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Compose
+        uses: docker/setup-buildx-action@v2
+
+      - name: Start all services
+        run: |
+          docker compose up -d --build
+
+      - name: Wait for Postgres
+        run: |
+          for i in {1..20}; do
+            docker exec fraud-platform-postgres pg_isready -U $DB_USER && break
+            echo "Waiting for Postgres..."
+            sleep 3
+          done
+
+      - name: Wait for transaction API
+        run: |
+          for i in {1..20}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/transactions || echo "000")
+            if [ "$STATUS" = "200" ]; then break; fi
+            echo "Waiting for transaction API..."
+            sleep 3
+          done
+
+      - name: Wait for frontend
+        run: |
+          for i in {1..20}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8082/ || echo "000")
+            if [ "$STATUS" = "200" ]; then break; fi
+            echo "Waiting for frontend..."
+            sleep 3
+          done
+
+      - name: Test transaction API returns JSON
+        run: |
+          RESPONSE=$(curl -s http://localhost:8000/transactions)
+          echo "$RESPONSE"
+          if ! echo "$RESPONSE" | grep -q '"transactions"'; then
+            echo "❌ API did not return transactions"
+            exit 1
+          fi
+
+      - name: Test frontend is up
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8082/)
+          if [ "$STATUS" != "200" ]; then
+            echo "❌ Frontend not available"
+            exit 1
+          fi
+
+      - name: Stop services
+        if: always()
+        run: docker compose down
+
