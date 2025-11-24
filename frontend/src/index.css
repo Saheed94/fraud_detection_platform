@@ -1,0 +1,324 @@
+/* ------------------------------
+   GLOBAL THEME
+--------------------------------*/
+:root {
+  --bg: #f5f7fa;           /* light background */
+  --bg-light: #ffffff;      /* card and form background */
+  --card: #ffffff;
+  --text: #1e293b;
+  --accent: #4dffac;
+  --accent-soft: rgba(77, 255, 172, 0.2);
+  --border: #cbd5e1;
+  --radius: 12px;
+  --transition: 0.25s ease;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ------------------------------
+   NAVBAR
+--------------------------------*/
+.navbar {
+  background: var(--bg-light);
+  padding: 1rem 2rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.navbar h1 {
+  font-size: 1.6rem;
+  margin: 0;
+}
+
+/* ------------------------------
+   MAIN CONTENT
+--------------------------------*/
+.main-content {
+  width: 100%;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* ------------------------------
+   CARDS
+--------------------------------*/
+.card {
+  background: var(--card);
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  animation: fadeIn 0.5s ease;
+}
+
+.card h2 {
+  margin-top: 0;
+}
+
+/* ------------------------------
+   SUMMARY
+--------------------------------*/
+.summary-grid {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.summary-box {
+  background: var(--bg-light);
+  padding: 1rem 2rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  flex: 1;
+  min-width: 180px;
+  text-align: center;
+}
+
+.summary-number {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--accent);
+}
+
+.summary-label {
+  color: var(--text);
+  opacity: 0.7;
+}
+
+/* ------------------------------
+   TABLE
+--------------------------------*/
+.styled-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.styled-table th, .styled-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.styled-table tr:hover {
+  background: var(--accent-soft);
+}
+
+.fraud-row {
+  background-color: rgba(255, 0, 0, 0.1);
+}
+
+/* ------------------------------
+   FORM
+--------------------------------*/
+input, select, button {
+  padding: 0.7rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-light);
+  color: var(--text);
+  margin-bottom: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+button {
+  background: var(--accent);
+  color: black;
+  cursor: pointer;
+  font-weight: bold;
+  transition: var(--transition);
+}
+
+button:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+/* ------------------------------
+   CHARTS
+--------------------------------*/
+.recharts-wrapper {
+  width: 100% !important;
+  overflow-x: auto;
+}
+
+/* ------------------------------
+   ANIMATIONS
+--------------------------------*/
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* /* ===========================
+   GLOBAL STYLING
+=========================== */
+body {
+  margin: 0;
+  padding: 0;
+  background: #f5f7fa;
+  font-family: 'Inter', sans-serif;
+  color: #1a1a1a;
+}
+
+h1, h2, h3 {
+  font-weight: 600;
+}
+
+.container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 2rem;
+}
+
+/* ===========================
+   CARD STYLE
+=========================== */
+.card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0px 4px 16px rgba(0,0,0,0.08);
+  margin-bottom: 2rem;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0px 6px 20px rgba(0,0,0,0.12);
+}
+
+/* ===========================
+   FORM STYLE
+=========================== */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+label {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+input[type="number"],
+input[type="text"],
+select {
+  padding: 0.6rem;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  font-size: 16px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+input:focus {
+  border-color: #4c7cf3;
+  box-shadow: 0 0 0 3px rgba(76, 124, 243, 0.2);
+}
+
+button {
+  padding: 0.7rem;
+  background: linear-gradient(to right, #4c7cf3, #6aa8ff);
+  border: none;
+  color: white;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  background: linear-gradient(to right, #3a6ce0, #5d9fff);
+}
+
+/* ===========================
+   TABLE STYLE
+=========================== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0px 4px 16px rgba(0,0,0,0.08);
+  margin-top: 20px;
+}
+
+th {
+  background: #4c7cf3;
+  color: white;
+  padding: 12px;
+  text-align: left;
+  font-size: 15px;
+}
+
+td {
+  padding: 12px;
+  border-bottom: 1px solid #eaeaea;
+}
+
+tr:hover {
+  background: #f8faff;
+}
+
+/* Fraud highlight */
+tr.fraud-row {
+  background: #ffe6e6 !important;
+}
+
+/* ===========================
+   SUMMARY BADGES
+=========================== */
+.summary-box {
+  display: inline-block;
+  background: #fff;
+  padding: 15px 20px;
+  border-radius: 12px;
+  margin-right: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0px 4px 16px rgba(0,0,0,0.06);
+}
+
+.summary-number {
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.summary-label {
+  font-size: 14px;
+  color: #666;
+}
+ 
