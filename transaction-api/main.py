@@ -92,11 +92,12 @@ async def get_transactions():
 
     transactions = []
     for row in results:
+        print("DEBUG:", row["id"], row["is_fraud"], type(row["is_fraud"]))  # <--- inspect value
         transactions.append({
             "id": row["id"],
             "amount": row["amount"],
-            "fraud": "Yes" if row["is_fraud"] else "No",
-            "created_at": row["created_at"].strftime("%d/%m/%Y, %H:%M:%S")
+            "fraud": "Yes" if row["is_fraud"] in (True, "t", "true", 1) else "No",
+            "created_at": row["created_at"].isoformat()
         })
 
     return {"transactions": transactions}

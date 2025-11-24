@@ -9,6 +9,10 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --prefix=/install --no-cache-dir -r requirements.txt
 
+# Install curl
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+
 # Copy app code
 COPY main.py .
 
@@ -24,6 +28,9 @@ COPY --from=builder /install /usr/local
 
 # Copy app code
 COPY --from=builder /app/main.py .
+
+# Install curl in production stage
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8000
 
