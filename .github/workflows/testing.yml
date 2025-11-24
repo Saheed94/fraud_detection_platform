@@ -100,8 +100,8 @@ jobs:
           username: ${{ secrets.TEST_SERVER_USER }}
           key: ${{ secrets.TEST_SERVER_SSH_KEY }}
           script: |
-            cd /home/ubuntu/fraud-platform
+            cd /home/ubuntu/fraud-platform/fraud_detection_platform
             git pull origin testing
-            docker-compose down
-            docker-compose pull
-            docker-compose up -d --build
+            docker compose down
+            docker compose pull
+            docker compose up -d --build
