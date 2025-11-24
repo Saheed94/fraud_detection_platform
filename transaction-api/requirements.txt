@@ -6,3 +6,4 @@ python-dotenv
 databases[postgresql]
 asyncpg
 pytest==7.4.0
+requests
