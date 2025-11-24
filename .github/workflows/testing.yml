@@ -33,7 +33,7 @@ jobs:
 
       - name: Run Tests
         run: |
-          cd backend
+          cd transaction-api
           pytest -q
 
   # ===============================
