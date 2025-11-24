@@ -17,18 +17,18 @@ jobs:
 
       - name: Build & Push transaction-api
         run: |
-          docker build -t your-dockerhub-username/transaction-api:testing ./transaction-api
-          docker push your-dockerhub-username/transaction-api:testing
+          docker build -t saheed941/transaction-api:testing ./transaction-api
+          docker push saheed941/transaction-api:testing
 
       - name: Build & Push fraud-frontend
         run: |
-          docker build -t your-dockerhub-username/fraud-frontend:testing ./frontend
-          docker push your-dockerhub-username/fraud-frontend:testing
+          docker build -t saheed941/fraud-frontend:testing ./frontend
+          docker push saheed941/fraud-frontend:testing
 
       - name: Build & Push fraud-worker
         run: |
-          docker build -t your-dockerhub-username/fraud-worker:testing ./fraud-worker
-          docker push your-dockerhub-username/fraud-worker:testing
+          docker build -t saheed941/fraud-worker:testing ./fraud-worker
+          docker push saheed941/fraud-worker:testing
 
   deploy:
     needs: build-and-push
