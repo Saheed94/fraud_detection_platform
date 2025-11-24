@@ -10,31 +10,36 @@ on:
 
 jobs:
 
-  # ===============================
-  # 1️⃣ BUILD & TEST BACKEND
-  # ===============================
-  backend:
-    name: Backend - Build & Test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+  # --------------------
+# Job: Backend Build & Test
+# --------------------
+backend:
+  name: Backend Build & Test
+  runs-on: ubuntu-latest
+  steps:
+    # Step 1: Checkout code
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
+    # Step 2: Set up Python
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
 
-      - name: Install Dependencies
-        run: |
-          cd transaction-api
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+    # Step 3: Install dependencies
+    - name: Install Backend Dependencies
+      run: |
+        cd transaction-api
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
 
-      - name: Run Tests
-        run: |
-          cd transaction-api
-          pytest -q tests/
+    # Step 4: Run backend tests
+    - name: Run Backend Tests
+      run: |
+        cd transaction-api
+        pytest tests/ -q
+
 
   # ===============================
   # 2️⃣ BUILD & TEST FRONTEND
