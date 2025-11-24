@@ -11,42 +11,42 @@ on:
 jobs:
 
   # --------------------
-# Job: Backend Build & Test
-# --------------------
-backend:
-  name: Backend Build & Test
-  runs-on: ubuntu-latest
-  steps:
-    # Step 1: Checkout code
-    - name: Checkout code
-      uses: actions/checkout@v3
+  # 1️⃣ BACKEND BUILD & TEST
+  # --------------------
+  backend:
+    name: Backend Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    # Step 2: Set up Python
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      # Step 2: Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
-    # Step 3: Install dependencies
-    - name: Install Backend Dependencies
-      run: |
-        cd transaction-api
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      # Step 3: Install dependencies
+      - name: Install Backend Dependencies
+        run: |
+          cd transaction-api
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    # Step 4: Run backend tests
-    - name: Run Backend Tests
-      run: |
-        cd transaction-api
-        pytest tests/ -q
+      # Step 4: Run backend tests
+      - name: Run Backend Tests
+        run: |
+          cd transaction-api
+          pytest tests/ -q
 
-
-  # ===============================
-  # 2️⃣ BUILD & TEST FRONTEND
-  # ===============================
+  # --------------------
+  # 2️⃣ FRONTEND BUILD & TEST
+  # --------------------
   frontend:
     name: Frontend - Build
     runs-on: ubuntu-latest
+    needs: backend
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -66,13 +66,13 @@ backend:
           cd frontend
           npm run build
 
-  # ===============================
+  # --------------------
   # 3️⃣ DOCKER BUILD & PUSH
-  # ===============================
+  # --------------------
   docker:
     name: Build & Push Docker Images
     runs-on: ubuntu-latest
-    needs: [backend, frontend] 
+    needs: [backend, frontend]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -91,9 +91,9 @@ backend:
         run: |
           docker-compose -f docker-compose.yml push
 
-  # ===============================
+  # --------------------
   # 4️⃣ DEPLOY TO TEST SERVER
-  # ===============================
+  # --------------------
   deploy:
     name: Deploy to Test Server
     runs-on: ubuntu-latest
