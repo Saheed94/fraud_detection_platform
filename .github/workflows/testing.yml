@@ -34,7 +34,7 @@ jobs:
       - name: Run Tests
         run: |
           cd transaction-api
-          pytest -q
+          pytest -q tests/
 
   # ===============================
   # 2️⃣ BUILD & TEST FRONTEND
