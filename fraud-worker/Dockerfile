@@ -1,18 +1,26 @@
-FROM python:3.11-alpine
+FROM python:3.11-slim
 
 WORKDIR /app
-
-# Install required packages including netcat
-RUN apk add --no-cache bash curl netcat-openbsd
-
-# Copy worker code
-COPY . .
 
 # Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-EXPOSE 8000
+# Install curl and netcat
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       curl \
+       netcat \
+       apt-utils \
+       gnupg \
+       ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy worker code
+COPY worker.py .
+
+EXPOSE 8001
 
 CMD ["python", "worker.py"]
 

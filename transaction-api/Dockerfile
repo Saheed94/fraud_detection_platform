@@ -9,9 +9,6 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --prefix=/install --no-cache-dir -r requirements.txt
 
-# Install curl and nc in builder (optional, mainly for testing)
-RUN apt-get update && apt-get install -y curl netcat && rm -rf /var/lib/apt/lists/*
-
 # Copy app code
 COPY main.py .
 
@@ -22,14 +19,22 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy only installed packages from builder
+# Install curl and netcat
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       curl \
+       netcat \
+       apt-utils \
+       gnupg \
+       ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy installed Python packages from builder
 COPY --from=builder /install /usr/local
 
-# Copy app code
+# Copy app code from builder
 COPY --from=builder /app/main.py .
-
-# Install curl and nc in production
-RUN apt-get update && apt-get install -y curl netcat && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8000
 
