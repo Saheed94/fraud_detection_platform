@@ -38,7 +38,7 @@ export default function FraudChart() {
 
       <div className="content">
 
-        Add Transaction Card
+        {/* Add Transaction Card */}
         <div className="card fade-in">
           {/* <h2>Add New Transaction</h2> */}
           <NewTransactionForm onTransactionAdded={loadTransactions} />

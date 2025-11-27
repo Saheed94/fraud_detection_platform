@@ -55,9 +55,9 @@ export default function NewTransactionForm({ onTransactionAdded }) {
         />
       </div>
       <div>
-        <label>Fraudulent? </label>
+        {/* <label>Fraudulent? </label> */}
         <input
-          type="checkbox"
+        //   type="checkbox"
           checked={isFraud}
           onChange={(e) => setIsFraud(e.target.checked)}
         />
